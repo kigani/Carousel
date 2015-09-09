@@ -59,24 +59,29 @@ table {
   position: relative; }
 
 .instaCarousel--fadeIn {
-  display: block;
-  height: 400px; }
+  display: block; }
   .instaCarousel--fadeIn li {
     opacity: 0;
     transition: all 0.5s;
     position: absolute;
     z-index: 1;
     left: 0;
-    top: 0; }
+    top: 0;
+    bottom: 0;
+    right: 0; }
   .instaCarousel--fadeIn .currentSlide {
     opacity: 1;
-    transition: all 0.5s; }
+    transition: all 0.5s;
+    position: static; }
   .instaCarousel--fadeIn img {
     display: block;
     height: auto;
-    max-width: 100%; }
+    width: 100%; }
 
 .instaCarousel--slide {
-  display: block; }
+  display: block;
+  white-space: nowrap;
+  font-size: 0; }
   .instaCarousel--slide li {
-    float: left; }
+    display: inline-block;
+    font-size: initial; }

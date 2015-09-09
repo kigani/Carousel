@@ -56,6 +56,7 @@
 
         _this.slider = document.querySelectorAll(_this.options.slider);
         _this.currentSlideName = "currentSlide";
+        _this.cloneSlideName = "instaCarousel-clone";
 
         this.init();
     };
@@ -79,7 +80,7 @@
     //Build basic slider structure
     InstaCarousel.prototype.buildSlider = function() {
         var _this = this;
-        var sliderWrapper, parentElement, currentSlide;
+        var sliderWrapper, parentElement, firstSlide;
 
         forEach(_this.slider, function(slider){
             parentElement = slider.parentNode;
@@ -90,14 +91,46 @@
             parentElement.replaceChild(sliderWrapper, slider);
             sliderWrapper.appendChild(slider);
 
+            //set proper class based on slides change mode
+            switch(_this.options.mode) {
+                case "fade":
+                    slider.className  += " instaCarousel--fadeIn";
+                    break;
+                case "slide":
+                    slider.className  += " instaCarousel--slide";
+                    _this.cloneSlides(slider);
+                    break;
+                default:
+                    return false;
+            }
+
             //set currentSlide to the first element of the list
-            currentSlide = slider.children[0];
-            currentSlide.className = _this.currentSlideName;
+            firstSlide = slider.children[0];
+            if(firstSlide.className === _this.cloneSlideName) {
+                firstSlide = slider.children[1];
+            }
+            firstSlide.className = _this.currentSlideName;
+
         }, _this);
 
     };
 
-    InstaCarousel.prototype.addSlide = function() {
+    InstaCarousel.prototype.cloneSlides = function(slider) {
+        var _this = this;
+        var firstSlide, lastSlide;
+        var slides = slider.children;
+
+        firstSlide = slides[0];
+        lastSlide = slides[slides.length-1];
+
+        var firstSlideClone = firstSlide.cloneNode(true);
+        var lastSlideClone = lastSlide.cloneNode(true);
+
+        firstSlideClone.className = _this.cloneSlideName;
+        lastSlideClone.className = _this.cloneSlideName;
+
+        slider.insertBefore(lastSlideClone, firstSlide);
+        slider.appendChild(firstSlideClone);
 
     };
 
@@ -113,14 +146,17 @@
                         currentSlide = slider.children[i];
                         nextSlide = slider.children[i+1];
 
-                        if(nextSlide === undefined) {
-                            slider.children[0].className = _this.currentSlideName;
+                        if(nextSlide === undefined || nextSlide.className === _this.cloneSlideName) {
+                            if(slider.children[0].className !== _this.cloneSlideName) {
+                                slider.children[0].className = _this.currentSlideName;
+                            } else {
+                                slider.children[1].className = _this.currentSlideName;
+                            }
                         }
                     }
-
                 }
                 currentSlide.className = "";
-                if(nextSlide !== undefined) {
+                if(nextSlide !== undefined && nextSlide.className !== _this.cloneSlideName) {
                     nextSlide.className = _this.currentSlideName;
                 }
             }, _this);
@@ -136,26 +172,13 @@
     InstaCarousel.prototype.fadeEffect = function() {
         var _this = this;
         if(_this.cssTransitions) {
-            forEach(_this.slider, function(slider) {
-                slider.className += " instaCarousel--fadeIn";
-            }, _this);
+
         }
     };
 
     InstaCarousel.prototype.slideEffect = function() {
         var _this = this;
-        var slide, sliderWidth;
-        forEach(_this.slider, function(slider){
-            sliderWidth = 0;
-            slider.className += " instaCarousel--slide";
-            for(var i= 0, len = slider.children.length; i < len; i++) {
-                //calculate slider width
-                slide = slider.children[i];
-                sliderWidth += slide.offsetWidth;
-            }
-
-            slider.style.width = sliderWidth + "px";
-        }, _this);
+        var slide;
     };
 
     InstaCarousel.prototype.setProps = function() {
