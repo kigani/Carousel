@@ -47,7 +47,8 @@
             mode: "fade",
             duration: 500,
             infiniteLoop: true,
-            auto: true
+            auto: true,
+            userControl: true
         };
 
         if(arguments[0] && typeof arguments[0] === "object") {
@@ -68,9 +69,9 @@
         if(_this.options.mode === "fade") {
             _this.fadeEffect();
         }
-        if(_this.options.mode === "slide") {
-            _this.slideEffect();
-        }
+        //if(_this.options.mode === "slide") {
+        //    _this.slideEffect();
+        //}
         if(_this.options.infiniteLoop) {
             _this.playContinously();
         }
@@ -90,7 +91,7 @@
             sliderWrapper.className = "instaCarousel-wrapper";
             parentElement.replaceChild(sliderWrapper, slider);
             sliderWrapper.appendChild(slider);
-
+            firstSlide = slider.children[0];
             //set proper class based on slides change mode
             switch(_this.options.mode) {
                 case "fade":
@@ -99,13 +100,19 @@
                 case "slide":
                     slider.className  += " instaCarousel--slide";
                     _this.cloneSlides(slider);
+                    var width = firstSlide.offsetWidth;
+                    console.log(width)
+                    sliderWrapper.style.width = width + 'px';
+                    _this.setCssSlideEffect(slider, width);
                     break;
                 default:
                     return false;
             }
+            if(_this.options.userControl === true) {
+                _this.buildNavigation(slider, sliderWrapper);
+            }
 
             //set currentSlide to the first element of the list
-            firstSlide = slider.children[0];
             if(firstSlide.className === _this.cloneSlideName) {
                 firstSlide = slider.children[1];
             }
@@ -137,14 +144,23 @@
     InstaCarousel.prototype.changeSlide = function() {
             var _this = this;
 
-            var currentSlide, nextSlide, prevSlide;
+            var currentSlide, nextSlide, prevSlide, distance;
             forEach(_this.slider, function(slider) {
-                var counter = 0;
+
+                //Assumption - All slides have the same width (set in css)
+                distance = slider.children[0].offsetWidth;
                 for(var i= 0, len = slider.children.length; i < len; i++) {
-                    counter++;
+
+                    //Set current slide className
                     if(slider.children[i].className === _this.currentSlideName) {
                         currentSlide = slider.children[i];
                         nextSlide = slider.children[i+1];
+
+                        //TODO correct logic - it fails in the first iteration
+                        if(_this.options.mode === "slide") {
+                            distance = distance * i;
+                           _this.setCssSlideEffect(slider, distance);
+                        }
 
                         if(nextSlide === undefined || nextSlide.className === _this.cloneSlideName) {
                             if(slider.children[0].className !== _this.cloneSlideName) {
@@ -155,10 +171,13 @@
                         }
                     }
                 }
+
                 currentSlide.className = "";
                 if(nextSlide !== undefined && nextSlide.className !== _this.cloneSlideName) {
                     nextSlide.className = _this.currentSlideName;
                 }
+
+
             }, _this);
     };
 
@@ -176,9 +195,33 @@
         }
     };
 
-    InstaCarousel.prototype.slideEffect = function() {
+    InstaCarousel.prototype.setCssSlideEffect = function(slider, distance) {
+        slider.style.webkitTransform = 'translateX('+(-distance)+'px)';
+        slider.style.msTransform = 'translateX('+(-distance)+'px)';
+        slider.style.transform = 'translateX('+(-distance)+'px)';
+
+    };
+
+    InstaCarousel.prototype.buildNavigation = function(slider, sliderWrapper) {
         var _this = this;
-        var slide;
+        var buttonNext = document.createElement("button");
+        buttonNext.innerHTML = "Next";
+        buttonNext.className = "instaCarousel-next";
+
+        var buttonPrev = document.createElement("button");
+        buttonPrev.innerHTML = "Prev";
+        buttonPrev.className = "instaCarousel-prev";
+
+        sliderWrapper.insertBefore(buttonPrev, slider);
+        sliderWrapper.appendChild(buttonNext);
+
+        _this.initNavigation(buttonPrev, buttonNext);
+    };
+    InstaCarousel.prototype.initNavigation = function(buttonPrev, buttonNext) {
+        var _this = this;
+        buttonNext.addEventListener('click', function() {
+            _this.changeSlide();
+        });
     };
 
     InstaCarousel.prototype.setProps = function() {

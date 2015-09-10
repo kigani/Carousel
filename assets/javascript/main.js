@@ -3,7 +3,9 @@
     window.onload = function () {
         var carousel = new InstaCarousel({
             duration: 2000,
-            mode: "slide"
+            mode: "slide",
+            infiniteLoop: false,
+            userControl: true
         });
     }
 })();
