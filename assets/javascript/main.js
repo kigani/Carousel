@@ -4,7 +4,7 @@
         var carousel = new InstaCarousel({
             duration: 2000,
             mode: "slide",
-            infiniteLoop: false,
+            infiniteLoop: true,
             userControl: true
         });
     }

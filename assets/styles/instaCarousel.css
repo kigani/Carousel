@@ -87,8 +87,7 @@ table {
 .instaCarousel--slide {
   display: block;
   white-space: nowrap;
-  font-size: 0;
-  transition: all 0.5s; }
+  font-size: 0; }
   .instaCarousel--slide li {
     display: inline-block;
     font-size: initial; }
