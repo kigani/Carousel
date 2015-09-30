@@ -48,14 +48,15 @@
             'OTransition':'oTransitionEnd',
             'MozTransition':'transitionend',
             'WebkitTransition':'webkitTransitionEnd'
-        }
+        };
 
         for(t in transitions){
             if( el.style[t] !== undefined ){
                 return transitions[t];
             }
         }
-    }
+    };
+    var onTransitionEndFn = function(){};
 
     var InstaCarousel = function () {
         var _this = this;
@@ -78,7 +79,7 @@
         _this.cloneSlideName = "instaCarousel-clone";
         _this.slides;
         _this.slidesCount;
-
+        _this.checkIfAnimating = false
         this.init();
     };
 
@@ -171,21 +172,22 @@
         _this.currentSlideIndex = slideIndex;
         _this.setCssSlideEffect(slider, itemWidth * _this.currentSlideIndex);
 
-        if (slideIndex > _this.slidesCount) {
-
-            slider.addEventListener(transitionEvent, function() {
+        onTransitionEndFn = function() {
+            if (slideIndex > _this.slidesCount) {
                 _this.currentSlideIndex = 1;
                 slider.style.transition = "all 0s";
                 _this.setCssSlideEffect(slider, itemWidth * _this.currentSlideIndex);
-            });
-        } else if(slideIndex < 1){
-            slider.addEventListener(transitionEvent, function() {
+            } else if(slideIndex < 1){
                 _this.currentSlideIndex = _this.slidesCount;
                 _this.setCssSlideEffect(slider, itemWidth * _this.currentSlideIndex);
                 slider.style.transition = "all 0s";
-            });
-        }
+            }
+            _this.checkIfAnimating = false;
+        };
+
+        slider.addEventListener(transitionEvent, onTransitionEndFn);
     };
+
 
     InstaCarousel.prototype.playContinously = function (slider) {
         var _this = this;
@@ -224,11 +226,22 @@
     };
     InstaCarousel.prototype.initNavigation = function (slider, buttonPrev, buttonNext) {
         var _this = this;
+        var transitionEvent = whichTransitionEvent();
+
+        var changeSlide = function(index) {
+            if(_this.checkIfAnimating){
+                return false;
+            }
+            slider.removeEventListener(transitionEvent, onTransitionEndFn);
+            _this.checkIfAnimating = true;
+            _this.changeSlide(slider, index);
+        };
+
         buttonPrev.addEventListener('click', function () {
-            _this.changeSlide(slider, _this.currentSlideIndex - 1);
+            changeSlide(_this.currentSlideIndex - 1);
         });
         buttonNext.addEventListener('click', function () {
-            _this.changeSlide(slider, _this.currentSlideIndex + 1);
+            changeSlide(_this.currentSlideIndex + 1);
         });
     };
 
