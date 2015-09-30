@@ -56,7 +56,6 @@
             }
         }
     };
-    var onTransitionEndFn = function(){};
 
     var InstaCarousel = function () {
         var _this = this;
@@ -172,7 +171,7 @@
         _this.currentSlideIndex = slideIndex;
         _this.setCssSlideEffect(slider, itemWidth * _this.currentSlideIndex);
 
-        onTransitionEndFn = function() {
+        var onTransitionEndFn = function() {
             if (slideIndex > _this.slidesCount) {
                 _this.currentSlideIndex = 1;
                 slider.style.transition = "all 0s";
@@ -183,6 +182,7 @@
                 slider.style.transition = "all 0s";
             }
             _this.checkIfAnimating = false;
+            slider.removeEventListener(transitionEvent, onTransitionEndFn);
         };
 
         slider.addEventListener(transitionEvent, onTransitionEndFn);
@@ -226,13 +226,11 @@
     };
     InstaCarousel.prototype.initNavigation = function (slider, buttonPrev, buttonNext) {
         var _this = this;
-        var transitionEvent = whichTransitionEvent();
-
+        
         var changeSlide = function(index) {
             if(_this.checkIfAnimating){
                 return false;
             }
-            slider.removeEventListener(transitionEvent, onTransitionEndFn);
             _this.checkIfAnimating = true;
             _this.changeSlide(slider, index);
         };
