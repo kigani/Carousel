@@ -62,7 +62,7 @@
     var Carousel = function (slider, options) {
         var _this = this;
 
-        _this.options = options
+        _this.options = options;
         _this.slider = slider;
         _this.currentSlideName = "currentSlide";
         _this.currentSlideIndex = 0;
@@ -89,50 +89,42 @@
     //Build basic slider structure
     Carousel.prototype.buildSlider = function () {
         var _this = this;
-        var sliderWrapper, parentElement, firstSlide;
+        //Build slider wrapper
+        var sliderWrapper =document.createElement("div");
+        var parentElement = _this.slider.parentNode;
+        var firstSlide =_this.slider.children[0];
 
-            parentElement = _this.slider.parentNode;
+        sliderWrapper.className = "instaCarousel-wrapper";
+        parentElement.replaceChild(sliderWrapper, _this.slider);
+        sliderWrapper.appendChild(_this.slider);
+        firstSlide.className = _this.currentSlideName;
 
-            //Build slider wrapper
-            sliderWrapper = document.createElement("div");
-            sliderWrapper.className = "instaCarousel-wrapper";
-            parentElement.replaceChild(sliderWrapper, _this.slider);
-            sliderWrapper.appendChild(_this.slider);
-            firstSlide = _this.slider.children[0];
-            firstSlide.className = _this.currentSlideName;
-
-            _this.slides = _this.slider.children;
-            _this.slidesCount = _this.slides.length;
-            //set proper class based on slides change mode
-            switch (_this.options.mode) {
-                case "fade":
-                    _this.slider.className += " instaCarousel--fadeIn";
-                    break;
-                case "slide":
-                    _this.slider.className += " instaCarousel--slide";
-                    _this.cloneSlides(_this.slider);
-                    _this.changeSlide(1);
-                    var width = firstSlide.offsetWidth;
-                    sliderWrapper.style.width = width + 'px';
-
-
-                    break;
-                default:
-                    return false;
-            }
-            if (_this.options.userControl === true) {
-                _this.buildNavigation(sliderWrapper);
-            }
-
+        _this.slides = _this.slider.children;
+        _this.slidesCount = _this.slides.length;
+        //set proper class based on slides change mode
+        switch (_this.options.mode) {
+            case "fade":
+                _this.slider.className += " instaCarousel--fadeIn";
+                break;
+            case "slide":
+                _this.slider.className += " instaCarousel--slide";
+                _this.cloneSlides(_this.slider);
+                _this.changeSlide(1);
+                sliderWrapper.style.width = firstSlide.offsetWidth + 'px';
+                break;
+            default:
+                return false;
+        }
+        if (_this.options.userControl === true) {
+            _this.buildNavigation(sliderWrapper);
+        }
     };
 
     Carousel.prototype.cloneSlides = function () {
         var _this = this;
-        var firstSlide, lastSlide;
 
-        firstSlide = _this.slides[0];
-        lastSlide = _this.slides[_this.slides.length - 1];
-
+        var firstSlide = _this.slides[0];
+        var lastSlide = _this.slides[_this.slides.length - 1];
         var firstSlideClone = firstSlide.cloneNode(true);
         var lastSlideClone = lastSlide.cloneNode(true);
 
@@ -196,10 +188,10 @@
     Carousel.prototype.buildNavigation = function (sliderWrapper) {
         var _this = this;
         var buttonNext = document.createElement("button");
+        var buttonPrev = document.createElement("button");
+
         buttonNext.innerHTML = "Next";
         buttonNext.className = "instaCarousel-next";
-
-        var buttonPrev = document.createElement("button");
         buttonPrev.innerHTML = "Prev";
         buttonPrev.className = "instaCarousel-prev";
 
