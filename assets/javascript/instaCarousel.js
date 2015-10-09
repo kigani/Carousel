@@ -18,24 +18,6 @@
         return defaults;
     };
 
-
-    var whichTransitionEvent = function(){
-        var t;
-        var el = document.createElement('fakeelement');
-        var transitions = {
-            'transition':'transitionend',
-            'OTransition':'oTransitionEnd',
-            'MozTransition':'transitionend',
-            'WebkitTransition':'webkitTransitionEnd'
-        };
-
-        for(t in transitions){
-            if( el.style[t] !== undefined ){
-                return transitions[t];
-            }
-        }
-    };
-
     var MainCarousel = function () {
         var _this = this;
         var defaults = {
@@ -66,13 +48,14 @@
         _this.currentSlideName = "currentSlide";
         _this.currentSlideIndex = 0;
         _this.cloneSlideName = "instaCarousel-clone";
-        _this.slides;
-        _this.slidesCount;
         _this.isAnimating = false;
-        _this.autoPlayTimer;
-        _this.currentSlide;
-        _this.previousSlide;
-        _this.nextSlide;
+
+        _this.slides = null;
+        _this.slidesCount = null;
+        _this.autoPlayTimer = null;
+        _this.currentSlide = null;
+        _this.previousSlide = null;
+        _this.nextSlide = null;
 
         _this.init();
     };
@@ -158,28 +141,23 @@
             _this.slider.style.transition = "all " + duration / 1000 + "s";
             _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
 
+            if (slideIndex > _this.slidesCount) {
+                _this.currentSlideIndex = 1;
+                _this.currentSlide = _this.slides[_this.currentSlideIndex];
+
+            } else if (slideIndex < 1) {
+                _this.currentSlideIndex = _this.slidesCount;
+                _this.currentSlide = _this.slides[_this.currentSlideIndex];
+
+            }
             setTimeout(function () {
-                if (slideIndex > _this.slidesCount) {
-                    _this.currentSlideIndex = 1;
-                    _this.slider.style.transition = "all 0s";
-                    _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
-
-                } else if (slideIndex < 1) {
-                    _this.currentSlideIndex = _this.slidesCount;
-                    _this.slider.style.transition = "all 0s";
-                    _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
-
-                }
+                _this.slider.style.transition = "all 0s";
+                _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
                 _this.isAnimating = false;
             }, duration);
         }
+
         if(_this.options.mode === "fade") {
-
-            //remove class from previous slide
-            if(_this.previousSlide) {
-                _this.previousSlide.classList.remove(_this.currentSlideName);
-            }
-
             //loop slides to the beginning or to the end
             if (slideIndex >= _this.slidesCount) {
                 _this.currentSlideIndex = 0;
@@ -189,13 +167,18 @@
                 _this.currentSlide = _this.slides[_this.currentSlideIndex];
             }
 
-            _this.currentSlide.classList.add(_this.currentSlideName);
-
             //wait for the end of the animation
             setTimeout(function () {
                 _this.isAnimating = false;
             }, duration);
         }
+
+        //remove class from previous slide
+        if(_this.previousSlide) {
+            _this.previousSlide.classList.remove(_this.currentSlideName);
+        }
+        //add class to current slide
+        _this.currentSlide.classList.add(_this.currentSlideName);
 
         if (_this.options.autoPlay.enabled) {
             _this.pause();
@@ -229,8 +212,8 @@
     Carousel.prototype.setCssSlideEffect = function (distance) {
         var _this =this;
         _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
-        _this.slider.style.msTransform = 'translateX(' + (-distance) + 'px, 0, 0)';
-        _this.slider.style.transform = 'translateX(' + (-distance) + 'px, 0, 0)';
+        _this.slider.style.msTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
+        _this.slider.style.transform = 'translate3d(' + (-distance) + 'px, 0, 0)';
     };
 
     Carousel.prototype.buildNavigation = function (sliderWrapper) {
