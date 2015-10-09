@@ -141,36 +141,14 @@
             _this.slider.style.transition = "all " + duration / 1000 + "s";
             _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
 
-            if (slideIndex > _this.slidesCount) {
-                _this.currentSlideIndex = 1;
-                _this.currentSlide = _this.slides[_this.currentSlideIndex];
-
-            } else if (slideIndex < 1) {
-                _this.currentSlideIndex = _this.slidesCount;
-                _this.currentSlide = _this.slides[_this.currentSlideIndex];
-
-            }
-            setTimeout(function () {
+            _this.inifiniteLoop(1, _this.slidesCount, function(){
                 _this.slider.style.transition = "all 0s";
                 _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
-                _this.isAnimating = false;
-            }, duration);
+            });
         }
 
         if(_this.options.mode === "fade") {
-            //loop slides to the beginning or to the end
-            if (slideIndex >= _this.slidesCount) {
-                _this.currentSlideIndex = 0;
-                _this.currentSlide = _this.slides[_this.currentSlideIndex];
-            } else if (slideIndex < 0) {
-                _this.currentSlideIndex = _this.slidesCount - 1;
-                _this.currentSlide = _this.slides[_this.currentSlideIndex];
-            }
-
-            //wait for the end of the animation
-            setTimeout(function () {
-                _this.isAnimating = false;
-            }, duration);
+            _this.inifiniteLoop(0, _this.slidesCount -1);
         }
 
         //remove class from previous slide
@@ -184,6 +162,28 @@
             _this.pause();
             _this.autoPlay();
         }
+    };
+
+    Carousel.prototype.inifiniteLoop = function(index, elementsLength, callback) {
+        var _this = this;
+
+        if (_this.currentSlideIndex > elementsLength) {
+            _this.currentSlideIndex = index;
+            _this.currentSlide = _this.slides[_this.currentSlideIndex];
+        } else if (_this.currentSlideIndex < index) {
+            _this.currentSlideIndex = elementsLength;
+            _this.currentSlide = _this.slides[_this.currentSlideIndex];
+        }
+
+        //wait for the end of the animation
+        setTimeout(function () {
+            if(callback) {
+                callback();
+            }
+
+            _this.isAnimating = false;
+        }, _this.options.slideSpeed);
+
     };
 
     Carousel.prototype.autoPlay = function () {
