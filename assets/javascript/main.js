@@ -2,8 +2,9 @@
     "use strict";
     window.onload = function () {
         var carousel = new MainCarousel({
-            mode: "slide",
-            userControl: true
+            mode: "fade",
+            userControl: true,
+            autoPlay: {enabled: false, duration: 2000}
         });
     }
 })();

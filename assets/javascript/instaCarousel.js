@@ -35,16 +35,15 @@
             }
         }
     };
-    var interval;
 
     var MainCarousel = function () {
         var _this = this;
         var defaults = {
             slider: ".instaCarousel",
             mode: "fade",
-            slideChangeDuration: 500,
+            slideSpeed: 500,
             infiniteLoop: true,
-            autoPlay: {enable: true, duration: 3000},
+            autoPlay: {enabled: true, duration: 5000},
             userControl: true
         };
 
@@ -70,7 +69,11 @@
         _this.slides;
         _this.slidesCount;
         _this.isAnimating = false;
-        _this.transitionEvent = whichTransitionEvent();
+        _this.autoPlayTimer;
+        _this.currentSlide;
+        _this.previousSlide;
+        _this.nextSlide;
+
         _this.init();
     };
 
@@ -78,12 +81,11 @@
     Carousel.prototype.init = function () {
         var _this = this;
         _this.setProps();
-
         _this.buildSlider();
+
         if (_this.options.mode === "fade") {
             _this.fadeEffect();
         }
-
     };
 
     //Build basic slider structure
@@ -109,7 +111,8 @@
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
                 _this.cloneSlides(_this.slider);
-                _this.changeSlide(1);
+                _this.currentSlideIndex = 1;
+                _this.setCssSlideEffect(firstSlide.offsetWidth * _this.currentSlideIndex);
                 sliderWrapper.style.width = firstSlide.offsetWidth + 'px';
                 break;
             default:
@@ -135,40 +138,85 @@
         _this.slider.appendChild(firstSlideClone);
     };
 
-    Carousel.prototype.changeSlide = function (slideIndex) {
+    Carousel.prototype.changeSlide = function (slideIndex, direction) {
         var _this = this;
+        _this.isAnimating = true;
+        _this.currentSlideIndex = slideIndex;
+        _this.currentSlide = _this.slides[slideIndex];
+
+        if(direction === "rtl") {
+            _this.previousSlide = _this.nextSlide = _this.slides[slideIndex+1];
+        } else if(direction === "ltr") {
+            _this.previousSlide = _this.slides[slideIndex-1];
+        }
+
         //Assumption - All slides have the same width (set in css)
         var itemWidth =  _this.slider.children[0].offsetWidth;
+        var duration = _this.options.slideSpeed;
 
-        _this.isAnimating = true;
-        _this.slider.style.transition = "all " + _this.options.slideChangeDuration/1000 + "s";
-        _this.currentSlideIndex = slideIndex;
-        _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
+        if(_this.options.mode === "slide") {
+            _this.slider.style.transition = "all " + duration / 1000 + "s";
+            _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
 
-        var onTransitionEndFn = function() {
-            if (slideIndex > _this.slidesCount) {
-                _this.currentSlideIndex = 1;
-                _this.slider.style.transition = "all 0s";
-                _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
-            } else if(slideIndex < 1) {
-                _this.currentSlideIndex = _this.slidesCount;
-                _this.slider.style.transition = "all 0s";
-                _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
+            setTimeout(function () {
+                if (slideIndex > _this.slidesCount) {
+                    _this.currentSlideIndex = 1;
+                    _this.slider.style.transition = "all 0s";
+                    _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
+
+                } else if (slideIndex < 1) {
+                    _this.currentSlideIndex = _this.slidesCount;
+                    _this.slider.style.transition = "all 0s";
+                    _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
+
+                }
+                _this.isAnimating = false;
+            }, duration);
+        }
+        if(_this.options.mode === "fade") {
+
+            //remove class from previous slide
+            if(_this.previousSlide) {
+                _this.previousSlide.classList.remove(_this.currentSlideName);
             }
-            _this.isAnimating = false;
-            _this.slider.removeEventListener(_this.transitionEvent, onTransitionEndFn);
-        };
-        _this.slider.addEventListener(_this.transitionEvent, onTransitionEndFn);
+
+            //loop slides to the beginning or to the end
+            if (slideIndex >= _this.slidesCount) {
+                _this.currentSlideIndex = 0;
+                _this.currentSlide = _this.slides[_this.currentSlideIndex];
+            } else if (slideIndex < 0) {
+                _this.currentSlideIndex = _this.slidesCount - 1;
+                _this.currentSlide = _this.slides[_this.currentSlideIndex];
+            }
+
+            _this.currentSlide.classList.add(_this.currentSlideName);
+
+            //wait for the end of the animation
+            setTimeout(function () {
+                _this.isAnimating = false;
+            }, duration);
+        }
+
+        if (_this.options.autoPlay.enabled) {
+            _this.pause();
+            _this.autoPlay();
+        }
     };
 
-
-    Carousel.prototype.playContinously = function (buttonNext) {
+    Carousel.prototype.autoPlay = function () {
         var _this = this;
-        var transitionEvent = whichTransitionEvent();
-       interval = setInterval(function () {
-           //_this.isAnimating = false;
-           //buttonNext.click();
+        _this.pause();
+        _this.autoPlayTimer = setInterval(function () {
+            _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
         }, _this.options.autoPlay.duration);
+    };
+
+    Carousel.prototype.pause = function () {
+        var _this = this;
+
+        if(_this.autoPlayTimer) {
+            clearInterval(_this.autoPlayTimer);
+        }
     };
 
     Carousel.prototype.fadeEffect = function () {
@@ -180,9 +228,9 @@
 
     Carousel.prototype.setCssSlideEffect = function (distance) {
         var _this =this;
-        _this.slider.style.webkitTransform = 'translateX(' + (-distance) + 'px)';
-        _this.slider.style.msTransform = 'translateX(' + (-distance) + 'px)';
-        _this.slider.style.transform = 'translateX(' + (-distance) + 'px)';
+        _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
+        _this.slider.style.msTransform = 'translateX(' + (-distance) + 'px, 0, 0)';
+        _this.slider.style.transform = 'translateX(' + (-distance) + 'px, 0, 0)';
     };
 
     Carousel.prototype.buildNavigation = function (sliderWrapper) {
@@ -206,17 +254,17 @@
 
         buttonPrev.addEventListener('click', function () {
             if(!_this.isAnimating){
-                _this.changeSlide(_this.currentSlideIndex - 1);
+                _this.changeSlide(_this.currentSlideIndex - 1, "rtl");
             }
         });
         buttonNext.addEventListener('click', function () {
             if(!_this.isAnimating){
-                _this.changeSlide(_this.currentSlideIndex + 1);
+                _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
             }
         });
 
-        if (_this.options.autoPlay) {
-            _this.playContinously(buttonNext);
+        if (_this.options.autoPlay.enabled) {
+            _this.autoPlay();
         }
     };
 
