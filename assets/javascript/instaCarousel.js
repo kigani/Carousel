@@ -56,7 +56,7 @@
         _this.currentSlide = null;
         _this.previousSlide = null;
         _this.nextSlide = null;
-
+        _this.slideWidth =null; //used only in slide mode
         _this.init();
     };
 
@@ -90,13 +90,16 @@
         switch (_this.options.mode) {
             case "fade":
                 _this.slider.className += " instaCarousel--fadeIn";
+
                 break;
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
                 _this.cloneSlides(_this.slider);
                 _this.currentSlideIndex = 1;
-                _this.setCssSlideEffect(firstSlide.offsetWidth * _this.currentSlideIndex);
-                sliderWrapper.style.width = firstSlide.offsetWidth + 'px';
+                //Assumption - All slides have the same width (set in css)
+                _this.slideWidth = firstSlide.offsetWidth;
+                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
+                sliderWrapper.style.width = _this.slideWidth + 'px';
                 break;
             default:
                 return false;
@@ -104,6 +107,7 @@
         if (_this.options.userControl === true) {
             _this.buildNavigation(sliderWrapper);
         }
+
     };
 
     Carousel.prototype.cloneSlides = function () {
@@ -133,30 +137,30 @@
             _this.previousSlide = _this.slides[slideIndex-1];
         }
 
-        //Assumption - All slides have the same width (set in css)
-        var itemWidth =  _this.slider.children[0].offsetWidth;
-        var duration = _this.options.slideSpeed;
-
         if(_this.options.mode === "slide") {
-            _this.slider.style.transition = "all " + duration / 1000 + "s";
-            _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
-
-            _this.inifiniteLoop(1, _this.slidesCount, function(){
-                _this.slider.style.transition = "all 0s";
-                _this.setCssSlideEffect(itemWidth * _this.currentSlideIndex);
-            });
+            _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
+            _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
         }
 
-        if(_this.options.mode === "fade") {
-            _this.inifiniteLoop(0, _this.slidesCount -1);
-        }
+        _this.lastSlideChange();
 
         //remove class from previous slide
-        if(_this.previousSlide) {
+        if(_this.previousSlide && _this.currentSlide) {
             _this.previousSlide.classList.remove(_this.currentSlideName);
         }
         //add class to current slide
-        _this.currentSlide.classList.add(_this.currentSlideName);
+        if(_this.currentSlide){
+            _this.currentSlide.classList.add(_this.currentSlideName);
+        }
+
+        //wait for the end of the animation
+        setTimeout(function () {
+            if(_this.options.mode === "slide") {
+                _this.slider.style.transition = "all 0s";
+                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
+            }
+            _this.isAnimating = false;
+        }, _this.options.slideSpeed);
 
         if (_this.options.autoPlay.enabled) {
             _this.pause();
@@ -164,25 +168,28 @@
         }
     };
 
-    Carousel.prototype.inifiniteLoop = function(index, elementsLength, callback) {
+    Carousel.prototype.lastSlideChange = function () {
         var _this = this;
 
-        if (_this.currentSlideIndex > elementsLength) {
+        if(_this.options.mode === "slide") {
+            _this.inifiniteLoop(1, _this.slidesCount);
+        }
+        if(_this.options.mode === "fade") {
+            _this.inifiniteLoop(0, _this.slidesCount -1);
+        }
+
+    };
+
+    Carousel.prototype.inifiniteLoop = function(index, elementsLength) {
+        var _this = this;
+
+        if (_this.currentSlideIndex > elementsLength && _this.options.infiniteLoop) {
             _this.currentSlideIndex = index;
             _this.currentSlide = _this.slides[_this.currentSlideIndex];
-        } else if (_this.currentSlideIndex < index) {
+        } else if (_this.currentSlideIndex < index && _this.options.infiniteLoop) {
             _this.currentSlideIndex = elementsLength;
             _this.currentSlide = _this.slides[_this.currentSlideIndex];
         }
-
-        //wait for the end of the animation
-        setTimeout(function () {
-            if(callback) {
-                callback();
-            }
-
-            _this.isAnimating = false;
-        }, _this.options.slideSpeed);
 
     };
 

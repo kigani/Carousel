@@ -4,7 +4,8 @@
         var carousel = new MainCarousel({
             mode: "slide",
             userControl: true,
-            autoPlay: {enabled: false, duration: 2000}
+            autoPlay: {enabled: false, duration: 2000},
+            infiniteLoop: false
         });
     }
 })();
