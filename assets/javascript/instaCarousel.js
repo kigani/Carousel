@@ -57,6 +57,8 @@
         _this.previousSlide = null;
         _this.nextSlide = null;
         _this.slideWidth =null; //used only in slide mode
+        _this.firstItemIndex = null; //index of the first item depends on mode (in "slide" mode first and last slide is cloned, cloned items shouldn't be counted)
+        _this.lastItemIndex = null; //index of the last item depends on mode (in "slide" mode first and last slide is cloned, cloned items shouldn't be counted)
         _this.init();
     };
 
@@ -90,7 +92,8 @@
         switch (_this.options.mode) {
             case "fade":
                 _this.slider.className += " instaCarousel--fadeIn";
-
+                _this.firstItemIndex = 0;
+                _this.lastItemIndex = _this.slidesCount -1;
                 break;
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
@@ -100,6 +103,8 @@
                 _this.slideWidth = firstSlide.offsetWidth;
                 _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
                 sliderWrapper.style.width = _this.slideWidth + 'px';
+                _this.firstItemIndex = 1;
+                _this.lastItemIndex = _this.slidesCount;
                 break;
             default:
                 return false;
@@ -142,16 +147,17 @@
             _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
         }
 
-        _this.lastSlideChange();
+        //last slide change action should be invoked only if infinite loop is set to true
+        if(_this.options.infiniteLoop) {
+            _this.lastSlideChange();
+        }
 
         //remove class from previous slide
-        if(_this.previousSlide && _this.currentSlide) {
+        if(_this.previousSlide) {
             _this.previousSlide.classList.remove(_this.currentSlideName);
         }
         //add class to current slide
-        if(_this.currentSlide){
-            _this.currentSlide.classList.add(_this.currentSlideName);
-        }
+        _this.currentSlide.classList.add(_this.currentSlideName);
 
         //wait for the end of the animation
         setTimeout(function () {
@@ -167,27 +173,15 @@
             _this.autoPlay();
         }
     };
-
+    
     Carousel.prototype.lastSlideChange = function () {
         var _this = this;
 
-        if(_this.options.mode === "slide") {
-            _this.inifiniteLoop(1, _this.slidesCount);
-        }
-        if(_this.options.mode === "fade") {
-            _this.inifiniteLoop(0, _this.slidesCount -1);
-        }
-
-    };
-
-    Carousel.prototype.inifiniteLoop = function(index, elementsLength) {
-        var _this = this;
-
-        if (_this.currentSlideIndex > elementsLength && _this.options.infiniteLoop) {
-            _this.currentSlideIndex = index;
+        if (_this.currentSlideIndex > _this.lastItemIndex) {
+            _this.currentSlideIndex = _this.firstItemIndex;
             _this.currentSlide = _this.slides[_this.currentSlideIndex];
-        } else if (_this.currentSlideIndex < index && _this.options.infiniteLoop) {
-            _this.currentSlideIndex = elementsLength;
+        } else if (_this.currentSlideIndex < _this.firstItemIndex) {
+            _this.currentSlideIndex = _this.lastItemIndex;
             _this.currentSlide = _this.slides[_this.currentSlideIndex];
         }
 
@@ -242,19 +236,50 @@
     Carousel.prototype.initNavigation = function (buttonPrev, buttonNext) {
         var _this = this;
 
-        buttonPrev.addEventListener('click', function () {
-            if(!_this.isAnimating){
-                _this.changeSlide(_this.currentSlideIndex - 1, "rtl");
+        buttonPrev.addEventListener('click', function (event) {
+            //if infinite loop is set to true action on click should be always invoked
+            if(_this.options.infiniteLoop) {
+                _this.prev();
+            } else {
+                //if infinite loop is set to false action on click shouldn't be invoked on the first slide
+                if(!_this.options.infiniteLoop && _this.currentSlideIndex > _this.firstItemIndex) {
+                    _this.prev();
+                } else {
+                    return false;
+                }
             }
         });
+
         buttonNext.addEventListener('click', function () {
-            if(!_this.isAnimating){
-                _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
+            //if infinite loop is set to true action on click should be always invoked
+            if(_this.options.infiniteLoop) {
+                _this.next();
+            } else {
+                //if infinite loop is set to false action on click shouldn't be invoked on the last slide
+                if( _this.currentSlideIndex < _this.lastItemIndex) {
+                    _this.next();
+                } else {
+                    return false;
+                }
             }
         });
 
         if (_this.options.autoPlay.enabled) {
             _this.autoPlay();
+        }
+    };
+
+    Carousel.prototype.next = function() {
+        var _this = this;
+        if(!_this.isAnimating){
+            _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
+        }
+    };
+
+    Carousel.prototype.prev = function() {
+        var _this = this;
+        if(!_this.isAnimating){
+            _this.changeSlide(_this.currentSlideIndex -1, "rtl");
         }
     };
 

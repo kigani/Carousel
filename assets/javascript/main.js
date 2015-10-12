@@ -2,10 +2,10 @@
     "use strict";
     window.onload = function () {
         var carousel = new MainCarousel({
-            mode: "slide",
+            mode: "fade",
             userControl: true,
             autoPlay: {enabled: false, duration: 2000},
-            infiniteLoop: false
+            infiniteLoop: true
         });
     }
 })();
