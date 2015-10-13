@@ -25,7 +25,7 @@
             mode: "fade",
             slideSpeed: 500,
             infiniteLoop: true,
-            autoPlay: {enabled: true, duration: 5000},
+            autoPlay: {enabled: false, speed: 5000}, //autoplay is available only if infinite loop is set to true
             userControl: true
         };
 
@@ -168,12 +168,13 @@
             _this.isAnimating = false;
         }, _this.options.slideSpeed);
 
-        if (_this.options.autoPlay.enabled) {
+        //reset autoplay timer after each slide change
+        if (_this.options.autoPlay.enabled && _this.options.infiniteLoop) {
             _this.pause();
             _this.autoPlay();
         }
     };
-    
+
     Carousel.prototype.lastSlideChange = function () {
         var _this = this;
 
@@ -191,8 +192,8 @@
         var _this = this;
         _this.pause();
         _this.autoPlayTimer = setInterval(function () {
-            _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
-        }, _this.options.autoPlay.duration);
+            _this.next();
+        }, _this.options.autoPlay.speed);
     };
 
     Carousel.prototype.pause = function () {
@@ -264,7 +265,8 @@
             }
         });
 
-        if (_this.options.autoPlay.enabled) {
+        //init autoplay
+        if (_this.options.autoPlay.enabled && _this.options.infiniteLoop) {
             _this.autoPlay();
         }
     };
