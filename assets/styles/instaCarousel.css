@@ -68,9 +68,7 @@ table {
   overflow: hidden; }
   .instaCarousel--fadeIn li {
     opacity: 0;
-    transition: all 0.5s;
     position: absolute;
-    z-index: 1;
     left: 0;
     top: 0;
     bottom: 0;
@@ -78,7 +76,6 @@ table {
     z-index: -1; }
   .instaCarousel--fadeIn .currentSlide {
     opacity: 1;
-    transition: all 0.5s;
     position: static; }
   .instaCarousel--fadeIn img {
     display: block;
@@ -92,5 +89,3 @@ table {
   .instaCarousel--slide li {
     display: inline-block;
     font-size: initial; }
-
-/*# sourceMappingURL=instaCarousel.css.map */

@@ -18,6 +18,22 @@
         return defaults;
     };
 
+    var fadeIn = function(el) {
+        el.style.opacity = 0;
+
+        var last = +new Date();
+        var tick = function() {
+            el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
+            last = +new Date();
+
+            if (+el.style.opacity < 1) {
+                (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+            }
+        };
+
+        tick();
+    };
+
     var MainCarousel = function () {
         var _this = this;
         var defaults = {
@@ -33,6 +49,7 @@
             _this.options = extendDefaults(defaults, arguments[0]);
         }
 
+        //Iterate over all sliders instances
         var elements = document.querySelectorAll(_this.options.slider);
         [].forEach.call(elements, function (carousel) {
             new Carousel(carousel, _this.options);
@@ -85,10 +102,18 @@
         parentElement.replaceChild(sliderWrapper, _this.slider);
         sliderWrapper.appendChild(_this.slider);
         firstSlide.className = _this.currentSlideName;
+        _this.currentSlide = firstSlide;
 
         _this.slides = _this.slider.children;
         _this.slidesCount = _this.slides.length;
-        //set proper class based on slides change mode
+
+        /**
+         * set up proper class based on slides change mode
+         * set up first and last elements' index
+         * Slide mode: clone first and last slide
+         * Slide mode: set up width for slider wrapper
+         * Slide mode: move to the first, not cloned slide
+         */
         switch (_this.options.mode) {
             case "fade":
                 _this.slider.className += " instaCarousel--fadeIn";
@@ -98,13 +123,12 @@
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
                 _this.cloneSlides(_this.slider);
-                _this.currentSlideIndex = 1;
-                //Assumption - All slides have the same width (set in css)
-                _this.slideWidth = firstSlide.offsetWidth;
-                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
-                sliderWrapper.style.width = _this.slideWidth + 'px';
                 _this.firstItemIndex = 1;
                 _this.lastItemIndex = _this.slidesCount;
+                //Assumption - All slides have the same width (set in css)
+                _this.slideWidth = firstSlide.offsetWidth;
+                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, "ltr");
+                sliderWrapper.style.width = _this.slideWidth + 'px';
                 break;
             default:
                 return false;
@@ -112,7 +136,6 @@
         if (_this.options.userControl === true) {
             _this.buildNavigation(sliderWrapper);
         }
-
     };
 
     Carousel.prototype.cloneSlides = function () {
@@ -142,50 +165,54 @@
             _this.previousSlide = _this.slides[slideIndex-1];
         }
 
-        if(_this.options.mode === "slide") {
-            _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
-            _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
+        //animation for browsers that don't support css transitions (<= ie9)
+        if (_this.options.mode === "fade" && !_this.cssTransitions) {
+            fadeIn(_this.currentSlide);
         }
 
-        //last slide change action should be invoked only if infinite loop is set to true
-        if(_this.options.infiniteLoop) {
-            _this.lastSlideChange();
+        if(_this.options.mode === "slide") {
+            _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
+            _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, direction);
+        }
+
+        if(_this.options.mode === "slide" &&  (_this.currentSlideIndex > _this.lastItemIndex || _this.currentSlideIndex < _this.firstItemIndex)) {
+            //wait for the end of the animation
+            setTimeout(function () {
+                _this.slider.style.transition = "all 0s";
+                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, direction);
+                _this.isAnimating = false;
+            }, _this.options.slideSpeed);
+
+        } else {
+            //wait for the end of the animation
+            setTimeout(function () {
+                _this.isAnimating = false;
+            }, _this.options.slideSpeed);
+        }
+
+        //change slide and slide index from the last one to the first one
+        if (_this.currentSlideIndex > _this.lastItemIndex) {
+            _this.currentSlideIndex = _this.firstItemIndex;
+            _this.currentSlide = _this.slides[_this.currentSlideIndex];
+        //change slide and slide index from the first one to the last one
+        } else if (_this.currentSlideIndex < _this.firstItemIndex) {
+            _this.currentSlideIndex = _this.lastItemIndex;
+            _this.currentSlide = _this.slides[_this.currentSlideIndex];
         }
 
         //remove class from previous slide
         if(_this.previousSlide) {
             _this.previousSlide.classList.remove(_this.currentSlideName);
         }
+
         //add class to current slide
         _this.currentSlide.classList.add(_this.currentSlideName);
-
-        //wait for the end of the animation
-        setTimeout(function () {
-            if(_this.options.mode === "slide") {
-                _this.slider.style.transition = "all 0s";
-                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex);
-            }
-            _this.isAnimating = false;
-        }, _this.options.slideSpeed);
 
         //reset autoplay timer after each slide change
         if (_this.options.autoPlay.enabled && _this.options.infiniteLoop) {
             _this.pause();
             _this.autoPlay();
         }
-    };
-
-    Carousel.prototype.lastSlideChange = function () {
-        var _this = this;
-
-        if (_this.currentSlideIndex > _this.lastItemIndex) {
-            _this.currentSlideIndex = _this.firstItemIndex;
-            _this.currentSlide = _this.slides[_this.currentSlideIndex];
-        } else if (_this.currentSlideIndex < _this.firstItemIndex) {
-            _this.currentSlideIndex = _this.lastItemIndex;
-            _this.currentSlide = _this.slides[_this.currentSlideIndex];
-        }
-
     };
 
     Carousel.prototype.autoPlay = function () {
@@ -206,16 +233,25 @@
 
     Carousel.prototype.fadeEffect = function () {
         var _this = this;
-        if (_this.cssTransitions) {
 
+        //initialization of the slides elements
+        if (_this.cssTransitions) {
+           for(var i=0; i < _this.slides.length; i++) {
+               _this.slides[i].style.transition = 'opacity ' + _this.options.slideSpeed / 1000 + 's';
+           }
+        //initialization of the first slide for browsers that don't support css transitions
+        } else {
+            _this.currentSlide.style.opacity = 1;
         }
+
     };
 
     Carousel.prototype.setCssSlideEffect = function (distance) {
         var _this =this;
-        _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
-        _this.slider.style.msTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
-        _this.slider.style.transform = 'translate3d(' + (-distance) + 'px, 0, 0)';
+        if(_this.cssTransform3d) {
+            _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
+            _this.slider.style.transform = 'translate3d(' + (-distance) + 'px, 0, 0)';
+        }
     };
 
     Carousel.prototype.buildNavigation = function (sliderWrapper) {
@@ -288,10 +324,14 @@
     Carousel.prototype.setProps = function () {
         var _this = this;
         var bodyStyle = document.body.style;
-
-        if (bodyStyle.WebkitTransition !== undefined || bodyStyle.MozTransition !== undefined || bodyStyle.msTransition !== undefined) {
+        if (bodyStyle.WebkitTransition !== undefined || bodyStyle.MozTransition !== undefined || bodyStyle.msTransition !== undefined || bodyStyle.transition !== undefined) {
             _this.cssTransitions = true;
         }
+
+        if( bodyStyle.webkitPerspective !== undefined || bodyStyle.MozPerspective !== undefined ) {
+            _this.cssTransform3d = true;
+        }
+
     };
 
 

@@ -4,8 +4,8 @@
         var carousel = new MainCarousel({
             mode: "fade",
             userControl: true,
-            autoPlay: {enabled: false, duration: 2000},
-            infiniteLoop: true
+            autoPlay: {enabled: false, speed: 2000},
+            infiniteLoop: false
         });
     }
 })();
