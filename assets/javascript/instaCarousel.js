@@ -34,6 +34,22 @@
         tick();
     };
 
+    var fadeOut = function (el) {
+        el.style.opacity = 1;
+        var last = +new Date();
+
+        var tick = function() {
+            el.style.opacity = el.style.opacity - ((new Date() - last) / 400);
+            last = +new Date();
+
+            if (+el.style.opacity > 0) {
+                (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+            }
+        };
+
+        tick();
+    };
+
     var MainCarousel = function () {
         var _this = this;
         var defaults = {
@@ -165,11 +181,6 @@
             _this.previousSlide = _this.slides[slideIndex-1];
         }
 
-        //animation for browsers that don't support css transitions (<= ie9)
-        if (_this.options.mode === "fade" && !_this.cssTransitions) {
-            fadeIn(_this.currentSlide);
-        }
-
         if(_this.options.mode === "slide") {
             _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
             _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, direction);
@@ -202,9 +213,16 @@
 
         //remove class from previous slide
         if(_this.previousSlide) {
+            if (_this.options.mode === "fade" && !_this.cssTransitions) {
+                fadeOut(_this.previousSlide);
+            }
             _this.previousSlide.classList.remove(_this.currentSlideName);
         }
 
+        //animation for browsers that don't support css transitions (<= ie9)
+        if (_this.options.mode === "fade" && !_this.cssTransitions) {
+            fadeIn(_this.currentSlide);
+        }
         //add class to current slide
         _this.currentSlide.classList.add(_this.currentSlideName);
 

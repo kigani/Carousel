@@ -5,7 +5,7 @@
             mode: "fade",
             userControl: true,
             autoPlay: {enabled: false, speed: 2000},
-            infiniteLoop: false
+            infiniteLoop: true
         });
     }
 })();
