@@ -59,6 +59,7 @@
         _this.slideWidth = null; //used only in slide mode
         _this.firstItemIndex = null; //index of the first item depends on mode (in "slide" mode first and last slide is cloned, cloned items shouldn't be counted)
         _this.lastItemIndex = null; //index of the last item depends on mode (in "slide" mode first and last slide is cloned, cloned items shouldn't be counted)
+        _this.direction = "ltr";
         _this.init();
     };
 
@@ -85,6 +86,7 @@
         parentElement.replaceChild(sliderWrapper, _this.slider);
         sliderWrapper.appendChild(_this.slider);
         firstSlide.className = _this.currentSlideName;
+
         _this.currentSlide = firstSlide;
 
         _this.slides = _this.slider.children;
@@ -106,11 +108,11 @@
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
                 _this.cloneSlides(_this.slider);
-                _this.firstItemIndex = 1;
+                _this.firstItemIndex = _this.currentSlideIndex = 1;
                 _this.lastItemIndex = _this.slidesCount;
                 //Assumption - All slides have the same width (set in css)
                 _this.slideWidth = firstSlide.offsetWidth;
-                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, "ltr");
+                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
                 sliderWrapper.style.width = _this.slideWidth + 'px';
                 break;
             default:
@@ -136,28 +138,28 @@
         _this.slider.appendChild(firstSlideClone);
     };
 
-    Carousel.prototype.changeSlide = function (slideIndex, direction) {
+    Carousel.prototype.changeSlide = function (slideIndex) {
         var _this = this;
         _this.isAnimating = true;
         _this.currentSlideIndex = slideIndex;
         _this.currentSlide = _this.slides[slideIndex];
 
-        if (direction === "rtl") {
+        if (_this.direction === "rtl") {
             _this.previousSlide = _this.nextSlide = _this.slides[slideIndex + 1];
-        } else if (direction === "ltr") {
+        } else if (_this.direction === "ltr") {
             _this.previousSlide = _this.slides[slideIndex - 1];
         }
 
         if (_this.options.mode === "slide") {
             _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
-            _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, direction);
+            _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, _this.options.slideSpeed);
         }
 
         if (_this.options.mode === "slide" && (_this.currentSlideIndex > _this.lastItemIndex || _this.currentSlideIndex < _this.firstItemIndex)) {
             //wait for the end of the animation
             setTimeout(function () {
                 _this.slider.style.transition = "all 0s";
-                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, direction);
+                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
                 _this.isAnimating = false;
             }, _this.options.slideSpeed);
 
@@ -180,6 +182,7 @@
 
         //remove class from previous slide
         if (_this.previousSlide) {
+            //animation for browsers that don't support css transitions (<= ie9)
             if (_this.options.mode === "fade" && !_this.cssTransitions) {
                 $.fadeOut(_this.previousSlide, {duration: _this.options.slideSpeed});
             }
@@ -230,11 +233,17 @@
         }
     };
 
-    Carousel.prototype.setCssSlideEffect = function (distance) {
+    Carousel.prototype.setCssSlideEffect = function (distance, duration) {
         var _this = this;
         if (_this.cssTransform3d) {
             _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
             _this.slider.style.transform = 'translate3d(' + (-distance) + 'px, 0, 0)';
+        } else {
+            if(_this.direction==="ltr") {
+                $.moveRight(_this.slider, (-distance), {duration: duration, const: _this.slideWidth} )
+            } else {
+                $.moveLeft(_this.slider, (-distance), {duration: duration, const: _this.slideWidth} )
+            }
         }
     };
 
@@ -294,14 +303,16 @@
     Carousel.prototype.next = function () {
         var _this = this;
         if (!_this.isAnimating) {
-            _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
+            _this.direction = "ltr";
+            _this.changeSlide(_this.currentSlideIndex + 1);
         }
     };
 
     Carousel.prototype.prev = function () {
         var _this = this;
         if (!_this.isAnimating) {
-            _this.changeSlide(_this.currentSlideIndex - 1, "rtl");
+            _this.direction = "rtl";
+            _this.changeSlide(_this.currentSlideIndex - 1);
         }
     };
 

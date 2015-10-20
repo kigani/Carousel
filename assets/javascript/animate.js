@@ -78,5 +78,33 @@
         });
     };
 
+    FX.prototype.moveRight = function(element, position, options) {
+        var to = position;
+        var _this = this;
+        _this.animate({
+            duration: options.duration,
+            delta: function(progress) {
+                return _this.easing.linear((1-progress)*(-options.const));
+            },
+            step: function(delta) {
+                element.style.left = to - delta+ 'px';
+            }
+        })
+    };
+
+    FX.prototype.moveLeft = function(element, position, options) {
+        var to = position;
+        var _this = this;
+        _this.animate({
+            duration: options.duration,
+            delta: function(progress) {
+                return _this.easing.linear((1-progress)*(-options.const));
+            },
+            step: function(delta) {
+                element.style.left = to + delta+ 'px';
+            }
+        })
+    };
+
     window.$ = new FX();
 })();
