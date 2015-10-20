@@ -68,10 +68,6 @@
         var _this = this;
         _this.setProps();
         _this.buildSlider();
-
-        if (_this.options.mode === "fade") {
-            _this.fadeEffect();
-        }
     };
 
     //Build basic slider structure
@@ -104,6 +100,16 @@
                 _this.slider.className += " instaCarousel--fadeIn";
                 _this.firstItemIndex = 0;
                 _this.lastItemIndex = _this.slidesCount - 1;
+                _this.fadeEffect(0);
+
+                for (var i = 0; i < _this.slides.length; i++) {
+                    //initialization of the slides elements
+                    if (_this.cssTransitions) {
+                        _this.slides[i].style.transition = 'opacity ' + _this.options.slideSpeed / 1000 + 's';
+                    } else {
+                        _this.slides[i].style.opacity = 0;
+                    }
+                }
                 break;
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
@@ -183,19 +189,14 @@
         //remove class from previous slide
         if (_this.previousSlide) {
             //animation for browsers that don't support css transitions (<= ie9)
-            if (_this.options.mode === "fade" && !_this.cssTransitions) {
-                $.fadeOut(_this.previousSlide, {duration: _this.options.slideSpeed});
-            }
             _this.previousSlide.classList.remove(_this.currentSlideName);
         }
 
-        //animation for browsers that don't support css transitions (<= ie9)
-        if (_this.options.mode === "fade" && !_this.cssTransitions) {
-            $.fadeIn(_this.currentSlide, {duration: _this.options.slideSpeed});
-        }
         //add class to current slide
         _this.currentSlide.classList.add(_this.currentSlideName);
-
+        if (_this.options.mode === "fade" && !_this.cssTransitions) {
+            _this.fadeEffect(_this.options.slideSpeed);
+        }
         //reset autoplay timer after each slide change
         if (_this.options.autoPlay.enabled && _this.options.infiniteLoop) {
             _this.pause();
@@ -219,18 +220,12 @@
         }
     };
 
-    Carousel.prototype.fadeEffect = function () {
+    Carousel.prototype.fadeEffect = function (speed) {
         var _this = this;
-
-        //initialization of the slides elements
-        if (_this.cssTransitions) {
-            for (var i = 0; i < _this.slides.length; i++) {
-                _this.slides[i].style.transition = 'opacity ' + _this.options.slideSpeed / 1000 + 's';
+            if(_this.previousSlide) {
+                $.fadeOut(_this.previousSlide, {duration: speed});
             }
-        //initialization of the first slide for browsers that don't support css transitions
-        } else {
-            _this.currentSlide.style.opacity = 1;
-        }
+            $.fadeIn(_this.currentSlide, {duration: speed});
     };
 
     Carousel.prototype.setCssSlideEffect = function (distance, duration) {
