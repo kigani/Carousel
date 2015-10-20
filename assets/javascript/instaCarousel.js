@@ -18,38 +18,6 @@
         return defaults;
     };
 
-    var fadeIn = function(el) {
-        el.style.opacity = 0;
-
-        var last = +new Date();
-        var tick = function() {
-            el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
-            last = +new Date();
-
-            if (+el.style.opacity < 1) {
-                (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
-            }
-        };
-
-        tick();
-    };
-
-    var fadeOut = function (el) {
-        el.style.opacity = 1;
-        var last = +new Date();
-
-        var tick = function() {
-            el.style.opacity = el.style.opacity - ((new Date() - last) / 400);
-            last = +new Date();
-
-            if (+el.style.opacity > 0) {
-                (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
-            }
-        };
-
-        tick();
-    };
-
     var MainCarousel = function () {
         var _this = this;
         var defaults = {
@@ -61,9 +29,8 @@
             userControl: true
         };
 
-        if (arguments[0] && typeof arguments[0] === "object") {
-            _this.options = extendDefaults(defaults, arguments[0]);
-        }
+        //Extend defaults with options passed by a user
+        _this.options = extendDefaults(defaults, arguments[0]);
 
         //Iterate over all sliders instances
         var elements = document.querySelectorAll(_this.options.slider);
@@ -89,7 +56,7 @@
         _this.currentSlide = null;
         _this.previousSlide = null;
         _this.nextSlide = null;
-        _this.slideWidth =null; //used only in slide mode
+        _this.slideWidth = null; //used only in slide mode
         _this.firstItemIndex = null; //index of the first item depends on mode (in "slide" mode first and last slide is cloned, cloned items shouldn't be counted)
         _this.lastItemIndex = null; //index of the last item depends on mode (in "slide" mode first and last slide is cloned, cloned items shouldn't be counted)
         _this.init();
@@ -110,9 +77,9 @@
     Carousel.prototype.buildSlider = function () {
         var _this = this;
         //Build slider wrapper
-        var sliderWrapper =document.createElement("div");
+        var sliderWrapper = document.createElement("div");
         var parentElement = _this.slider.parentNode;
-        var firstSlide =_this.slider.children[0];
+        var firstSlide = _this.slider.children[0];
 
         sliderWrapper.className = "instaCarousel-wrapper";
         parentElement.replaceChild(sliderWrapper, _this.slider);
@@ -134,7 +101,7 @@
             case "fade":
                 _this.slider.className += " instaCarousel--fadeIn";
                 _this.firstItemIndex = 0;
-                _this.lastItemIndex = _this.slidesCount -1;
+                _this.lastItemIndex = _this.slidesCount - 1;
                 break;
             case "slide":
                 _this.slider.className += " instaCarousel--slide";
@@ -175,18 +142,18 @@
         _this.currentSlideIndex = slideIndex;
         _this.currentSlide = _this.slides[slideIndex];
 
-        if(direction === "rtl") {
-            _this.previousSlide = _this.nextSlide = _this.slides[slideIndex+1];
-        } else if(direction === "ltr") {
-            _this.previousSlide = _this.slides[slideIndex-1];
+        if (direction === "rtl") {
+            _this.previousSlide = _this.nextSlide = _this.slides[slideIndex + 1];
+        } else if (direction === "ltr") {
+            _this.previousSlide = _this.slides[slideIndex - 1];
         }
 
-        if(_this.options.mode === "slide") {
+        if (_this.options.mode === "slide") {
             _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
             _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, direction);
         }
 
-        if(_this.options.mode === "slide" &&  (_this.currentSlideIndex > _this.lastItemIndex || _this.currentSlideIndex < _this.firstItemIndex)) {
+        if (_this.options.mode === "slide" && (_this.currentSlideIndex > _this.lastItemIndex || _this.currentSlideIndex < _this.firstItemIndex)) {
             //wait for the end of the animation
             setTimeout(function () {
                 _this.slider.style.transition = "all 0s";
@@ -205,23 +172,23 @@
         if (_this.currentSlideIndex > _this.lastItemIndex) {
             _this.currentSlideIndex = _this.firstItemIndex;
             _this.currentSlide = _this.slides[_this.currentSlideIndex];
-        //change slide and slide index from the first one to the last one
+            //change slide and slide index from the first one to the last one
         } else if (_this.currentSlideIndex < _this.firstItemIndex) {
             _this.currentSlideIndex = _this.lastItemIndex;
             _this.currentSlide = _this.slides[_this.currentSlideIndex];
         }
 
         //remove class from previous slide
-        if(_this.previousSlide) {
+        if (_this.previousSlide) {
             if (_this.options.mode === "fade" && !_this.cssTransitions) {
-                fadeOut(_this.previousSlide);
+                $.fadeOut(_this.previousSlide, {duration: _this.options.slideSpeed});
             }
             _this.previousSlide.classList.remove(_this.currentSlideName);
         }
 
         //animation for browsers that don't support css transitions (<= ie9)
         if (_this.options.mode === "fade" && !_this.cssTransitions) {
-            fadeIn(_this.currentSlide);
+            $.fadeIn(_this.currentSlide, {duration: _this.options.slideSpeed});
         }
         //add class to current slide
         _this.currentSlide.classList.add(_this.currentSlideName);
@@ -244,7 +211,7 @@
     Carousel.prototype.pause = function () {
         var _this = this;
 
-        if(_this.autoPlayTimer) {
+        if (_this.autoPlayTimer) {
             clearInterval(_this.autoPlayTimer);
         }
     };
@@ -254,19 +221,18 @@
 
         //initialization of the slides elements
         if (_this.cssTransitions) {
-           for(var i=0; i < _this.slides.length; i++) {
-               _this.slides[i].style.transition = 'opacity ' + _this.options.slideSpeed / 1000 + 's';
-           }
+            for (var i = 0; i < _this.slides.length; i++) {
+                _this.slides[i].style.transition = 'opacity ' + _this.options.slideSpeed / 1000 + 's';
+            }
         //initialization of the first slide for browsers that don't support css transitions
         } else {
             _this.currentSlide.style.opacity = 1;
         }
-
     };
 
     Carousel.prototype.setCssSlideEffect = function (distance) {
-        var _this =this;
-        if(_this.cssTransform3d) {
+        var _this = this;
+        if (_this.cssTransform3d) {
             _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
             _this.slider.style.transform = 'translate3d(' + (-distance) + 'px, 0, 0)';
         }
@@ -293,11 +259,11 @@
 
         buttonPrev.addEventListener('click', function (event) {
             //if infinite loop is set to true action on click should be always invoked
-            if(_this.options.infiniteLoop) {
+            if (_this.options.infiniteLoop) {
                 _this.prev();
             } else {
                 //if infinite loop is set to false action on click shouldn't be invoked on the first slide
-                if(!_this.options.infiniteLoop && _this.currentSlideIndex > _this.firstItemIndex) {
+                if (!_this.options.infiniteLoop && _this.currentSlideIndex > _this.firstItemIndex) {
                     _this.prev();
                 } else {
                     return false;
@@ -307,11 +273,11 @@
 
         buttonNext.addEventListener('click', function () {
             //if infinite loop is set to true action on click should be always invoked
-            if(_this.options.infiniteLoop) {
+            if (_this.options.infiniteLoop) {
                 _this.next();
             } else {
                 //if infinite loop is set to false action on click shouldn't be invoked on the last slide
-                if( _this.currentSlideIndex < _this.lastItemIndex) {
+                if (_this.currentSlideIndex < _this.lastItemIndex) {
                     _this.next();
                 } else {
                     return false;
@@ -325,17 +291,17 @@
         }
     };
 
-    Carousel.prototype.next = function() {
+    Carousel.prototype.next = function () {
         var _this = this;
-        if(!_this.isAnimating){
+        if (!_this.isAnimating) {
             _this.changeSlide(_this.currentSlideIndex + 1, "ltr");
         }
     };
 
-    Carousel.prototype.prev = function() {
+    Carousel.prototype.prev = function () {
         var _this = this;
-        if(!_this.isAnimating){
-            _this.changeSlide(_this.currentSlideIndex -1, "rtl");
+        if (!_this.isAnimating) {
+            _this.changeSlide(_this.currentSlideIndex - 1, "rtl");
         }
     };
 
@@ -346,13 +312,11 @@
             _this.cssTransitions = true;
         }
 
-        if( bodyStyle.webkitPerspective !== undefined || bodyStyle.MozPerspective !== undefined ) {
+        if (bodyStyle.webkitPerspective !== undefined || bodyStyle.MozPerspective !== undefined) {
             _this.cssTransform3d = true;
         }
 
     };
 
-
     window.MainCarousel = MainCarousel;
-
 })();
