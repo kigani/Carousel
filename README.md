@@ -1,1 +1,1 @@
-# instaCarousel
+# carousel
