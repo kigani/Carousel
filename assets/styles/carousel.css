@@ -45,28 +45,28 @@ table {
   border-collapse: collapse;
   border-spacing: 0; }
 
-.instaCarousel {
+.carousel {
   list-style: none;
   max-width: 100%;
   position: relative;
   display: none; }
-  .instaCarousel img {
+  .carousel img {
     display: block;
     height: auto;
     width: 100%; }
-  .instaCarousel li {
+  .carousel li {
     width: 400px;
     max-width: 100%; }
 
-.instaCarousel-wrapper {
+.carousel-wrapper {
   overflow: hidden;
   position: relative;
   max-width: 100%; }
 
-.instaCarousel--fadeIn {
+.carousel--fadeIn {
   display: block;
   overflow: hidden; }
-  .instaCarousel--fadeIn li {
+  .carousel--fadeIn li {
     opacity: 0;
     position: absolute;
     left: 0;
@@ -74,18 +74,18 @@ table {
     bottom: 0;
     right: 0;
     z-index: -1; }
-  .instaCarousel--fadeIn .currentSlide {
+  .carousel--fadeIn .currentSlide {
     opacity: 1;
     position: static; }
-  .instaCarousel--fadeIn img {
+  .carousel--fadeIn img {
     display: block;
     height: auto;
     width: 100%; }
 
-.instaCarousel--slide {
+.carousel--slide {
   display: block;
   white-space: nowrap;
   font-size: 0; }
-  .instaCarousel--slide li {
+  .carousel--slide li {
     display: inline-block;
     font-size: initial; }

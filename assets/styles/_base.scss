@@ -1,4 +1,4 @@
-.instaCarousel {
+.carousel {
   list-style: none;
   max-width: 100%;
   position: relative;
@@ -16,14 +16,14 @@
 
 }
 
-.instaCarousel-wrapper {
+.carousel-wrapper {
   overflow: hidden;
   position: relative;
   //width: 400px;
   max-width: 100%;
 }
 
-.instaCarousel--fadeIn {
+.carousel--fadeIn {
   display: block;
   overflow: hidden;
   li {
@@ -48,7 +48,7 @@
   }
 }
 
-.instaCarousel--slide {
+.carousel--slide {
   display: block;
   white-space: nowrap;
   font-size: 0;
