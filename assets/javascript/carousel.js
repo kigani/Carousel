@@ -21,7 +21,7 @@
     var MainCarousel = function () {
         var _this = this;
         var defaults = {
-            slider: ".instaCarousel",
+            slider: ".carousel",
             mode: "fade",
             slideSpeed: 500,
             infiniteLoop: true,
@@ -47,7 +47,7 @@
         _this.slider = slider;
         _this.currentSlideName = "currentSlide";
         _this.currentSlideIndex = 0;
-        _this.cloneSlideName = "instaCarousel-clone";
+        _this.cloneSlideName = "carousel-clone";
         _this.isAnimating = false;
 
         _this.slides = null;
@@ -78,7 +78,7 @@
         var parentElement = _this.slider.parentNode;
         var firstSlide = _this.slider.children[0];
 
-        sliderWrapper.className = "instaCarousel-wrapper";
+        sliderWrapper.className = "carousel-wrapper";
         parentElement.replaceChild(sliderWrapper, _this.slider);
         sliderWrapper.appendChild(_this.slider);
         firstSlide.className = _this.currentSlideName;
@@ -97,7 +97,7 @@
          */
         switch (_this.options.mode) {
             case "fade":
-                _this.slider.className += " instaCarousel--fadeIn";
+                _this.slider.className += " carousel--fadeIn";
                 _this.firstItemIndex = 0;
                 _this.lastItemIndex = _this.slidesCount - 1;
                 if (!_this.cssTransitions) {
@@ -114,7 +114,7 @@
                 }
                 break;
             case "slide":
-                _this.slider.className += " instaCarousel--slide";
+                _this.slider.className += " carousel--slide";
                 _this.cloneSlides(_this.slider);
                 _this.firstItemIndex = _this.currentSlideIndex = 1;
                 _this.lastItemIndex = _this.slidesCount;
@@ -258,9 +258,9 @@
         var buttonPrev = document.createElement("button");
 
         buttonNext.innerHTML = "Next";
-        buttonNext.className = "instaCarousel-next";
+        buttonNext.className = "carousel-next";
         buttonPrev.innerHTML = "Prev";
-        buttonPrev.className = "instaCarousel-prev";
+        buttonPrev.className = "carousel-prev";
 
         sliderWrapper.insertBefore(buttonPrev, _this.slider);
         sliderWrapper.appendChild(buttonNext);
