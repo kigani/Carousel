@@ -1,0 +1,1 @@
+{"version":3,"sources":["demo.scss"],"names":[],"mappings":"AAAA;EACE,iBAAiB,EADO","file":"demo.css","sourcesContent":[".demoCarousel-fadeEffect {\r\n  max-width: 500px;\r\n\r\n}"],"sourceRoot":"/source/"}
