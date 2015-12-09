@@ -100,7 +100,9 @@
                 _this.slider.className += " instaCarousel--fadeIn";
                 _this.firstItemIndex = 0;
                 _this.lastItemIndex = _this.slidesCount - 1;
-                _this.fadeEffect(0);
+                if (!_this.cssTransitions) {
+                    _this.fadeEffect(0);
+                }
 
                 for (var i = 0; i < _this.slides.length; i++) {
                     //initialization of the slides elements
@@ -118,7 +120,7 @@
                 _this.lastItemIndex = _this.slidesCount;
                 //Assumption - All slides have the same width (set in css)
                 _this.slideWidth = firstSlide.offsetWidth;
-                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
+                _this.slideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
                 sliderWrapper.style.width = _this.slideWidth + 'px';
                 break;
             default:
@@ -157,23 +159,7 @@
         }
 
         if (_this.options.mode === "slide") {
-            _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
-            _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, _this.options.slideSpeed);
-        }
-
-        if (_this.options.mode === "slide" && (_this.currentSlideIndex > _this.lastItemIndex || _this.currentSlideIndex < _this.firstItemIndex)) {
-            //wait for the end of the animation
-            setTimeout(function () {
-                _this.slider.style.transition = "all 0s";
-                _this.setCssSlideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
-                _this.isAnimating = false;
-            }, _this.options.slideSpeed);
-
-        } else {
-            //wait for the end of the animation
-            setTimeout(function () {
-                _this.isAnimating = false;
-            }, _this.options.slideSpeed);
+            _this.slide()
         }
 
         //change slide and slide index from the last one to the first one
@@ -194,14 +180,38 @@
 
         //add class to current slide
         _this.currentSlide.classList.add(_this.currentSlideName);
-        if (_this.options.mode === "fade" && !_this.cssTransitions) {
-            _this.fadeEffect(_this.options.slideSpeed);
+        if (_this.options.mode === "fade") {
+            _this.fade();
         }
         //reset autoplay timer after each slide change
         if (_this.options.autoPlay.enabled && _this.options.infiniteLoop) {
             _this.pause();
             _this.autoPlay();
         }
+    };
+
+    Carousel.prototype.slide = function() {
+        var _this = this;
+        _this.slider.style.transition = "all " + _this.options.slideSpeed / 1000 + "s";
+        _this.slideEffect(_this.slideWidth * _this.currentSlideIndex, _this.options.slideSpeed);
+
+        if (_this.currentSlideIndex > _this.lastItemIndex || _this.currentSlideIndex < _this.firstItemIndex) {
+            //wait for the end of the animation
+            _this.waitForAnimationEnd(function() {
+                _this.slider.style.transition = "all 0s";
+                _this.slideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
+            });
+        } else {
+            _this.waitForAnimationEnd();
+        }
+    };
+
+    Carousel.prototype.fade = function () {
+        var _this =this;
+        if (!_this.cssTransitions) {
+            _this.fadeEffect(_this.options.slideSpeed);
+        }
+        _this.waitForAnimationEnd();
     };
 
     Carousel.prototype.autoPlay = function () {
@@ -222,13 +232,13 @@
 
     Carousel.prototype.fadeEffect = function (speed) {
         var _this = this;
-            if(_this.previousSlide) {
-                $.fadeOut(_this.previousSlide, {duration: speed});
-            }
-            $.fadeIn(_this.currentSlide, {duration: speed});
+        if(_this.previousSlide) {
+            $.fadeOut(_this.previousSlide, {duration: speed});
+        }
+        $.fadeIn(_this.currentSlide, {duration: speed});
     };
 
-    Carousel.prototype.setCssSlideEffect = function (distance, duration) {
+    Carousel.prototype.slideEffect = function (distance, duration) {
         var _this = this;
         if (_this.cssTransform3d) {
             _this.slider.style.webkitTransform = 'translate3d(' + (-distance) + 'px, 0, 0)';
@@ -309,6 +319,15 @@
             _this.direction = "rtl";
             _this.changeSlide(_this.currentSlideIndex - 1);
         }
+    };
+    Carousel.prototype.waitForAnimationEnd = function (callback) {
+        var _this = this;
+        setTimeout(function () {
+            if(callback) {
+                callback();
+            }
+            _this.isAnimating = false;
+        }, _this.options.slideSpeed);
     };
 
     Carousel.prototype.setProps = function () {
