@@ -119,9 +119,12 @@
                 _this.firstItemIndex = _this.currentSlideIndex = 1;
                 _this.lastItemIndex = _this.slidesCount;
                 //Assumption - All slides have the same width (set in css)
-                _this.slideWidth = firstSlide.offsetWidth;
-                _this.slideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
-                sliderWrapper.style.width = _this.slideWidth + 'px';
+                _this.calculateSliderProperies(sliderWrapper, firstSlide);
+
+                window.onresize = function() {
+                    _this.calculateSliderProperies(sliderWrapper, firstSlide);
+                };
+
                 break;
             default:
                 return false;
@@ -129,6 +132,14 @@
         if (_this.options.userControl === true) {
             _this.buildNavigation(sliderWrapper);
         }
+    };
+
+    Carousel.prototype.calculateSliderProperies = function (sliderWrapper, slide) {
+        var _this = this;
+        sliderWrapper.removeAttribute('style');
+        _this.slideWidth = slide.offsetWidth;
+        _this.slideEffect(_this.slideWidth * _this.currentSlideIndex, 0);
+        sliderWrapper.style.width = _this.slideWidth + 'px';
     };
 
     Carousel.prototype.cloneSlides = function () {
@@ -345,3 +356,5 @@
 
     window.MainCarousel = MainCarousel;
 })();
+
+
